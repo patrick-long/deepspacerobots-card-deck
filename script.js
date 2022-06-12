@@ -69,8 +69,11 @@ class CardDeck {
 			cardElement.addEventListener("click", (e) => {
 				if (cardElement.dataset.inHand == "true") {
 					this.discard(cardElement.id);
+					console.log(cardElement.dataset);
 				} else {
 					this.draw(cardElement.id);
+					console.log(cardElement.dataset);
+					console.log(cardElement);
 				}
 			});
 		});
@@ -118,6 +121,7 @@ class CardDeck {
 		let Y = this.generateRandomNumber(-10, 10) + "px";
 		cardElement.style.transform = `rotate(${rotation}) translate3D(${X}, ${Y}, 0px)`;
 	}
+
 	draw(id) {
 		let card = this.deck.find((x) => x.id === id);
 		let cardElement = document.getElementById(id);
@@ -174,8 +178,50 @@ class CardDeck {
 //  Your code goes below this comment.
 /*------------------------------------------*/
 
+// Get query parameters from url
+const urlSearchAParams = new URLSearchParams(window.location.search);
+const queryParams = Object.fromEntries(urlSearchAParams.entries());
+console.log(queryParams);
+
 // Create a new card deck.
 const deck = new CardDeck(".deck", ".hand");
+
+
+// Handle queryParam instances based on key
+if (queryParams) {
+	let limit;
+	
+	if (queryParams.limit) {
+		
+	}
+
+	if (queryParams.cards) {
+
+	}
+
+	if (queryParams.suits) {
+
+	}
+
+	if (queryParams.ranks) {
+
+	}
+
+	if (queryParams.pleaseletmedraweverycard) {
+		const everyCardButton = document.createElement('button');
+		everyCardButton.setAttribute('class', 'every-card-button');
+		everyCardButton.innerHTML = 'Click Me!';
+		everyCardButton.addEventListener('click', () => {
+			console.log(`If you have the console open, thanks for clicking my bonus hidden button :)`);
+			deck.drawFiltered();
+		})
+		
+		const tableDiv = document.getElementsByClassName('table');
+		tableDiv[0].appendChild(everyCardButton);
+	}
+}
+
+
 
 // Take a look at the deck object and its methods.
 console.log(deck);
