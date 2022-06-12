@@ -196,7 +196,11 @@ if (queryParams) {
 	}
 
 	if (queryParams.cards) {
-
+		const individualCards = queryParams.cards.split(' ');
+		console.log(individualCards);
+		for (let individualCard of individualCards) {
+			deck.draw(individualCard);
+		}
 	}
 
 	if (queryParams.suits) {
@@ -219,6 +223,18 @@ if (queryParams) {
 		const tableDiv = document.getElementsByClassName('table');
 		tableDiv[0].appendChild(everyCardButton);
 	}
+}
+
+if (deck.hand && deck.hand.length > 1) {
+	const sortCardsButton = document.createElement('button');
+	sortCardsButton.setAttribute('class', 'sort-cards-button');
+	sortCardsButton.innerHTML = 'SORT YOUR CARDS';
+	sortCardsButton.addEventListener('click', () => {
+		deck.sort();
+	})
+	
+	const tableDiv = document.getElementsByClassName('table');
+	tableDiv[0].appendChild(sortCardsButton);
 }
 
 

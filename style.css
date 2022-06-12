@@ -101,7 +101,7 @@
 	background-size: cover;
 }
 
-.every-card-button {
+.every-card-button, .sort-cards-button {
 	position: absolute;
 	top: 10%;
 	border-radius: 0.5rem;
@@ -110,10 +110,20 @@
 	color: white;
 	min-height: 2rem;
 	min-width: 6rem;
-	font-size: 1.5rem;
+	font-size: 1.25rem;
 }
 
-.every-card-button:hover {
+.every-card-button {
+	top: 10%;
+	min-height: 2rem;
+	min-width: 6rem;
+}
+
+.sort-cards-button {
+	top: 20%;
+}
+
+.every-card-button:hover, .sort-cards-button:hover {
 	cursor: pointer;
 }
 
