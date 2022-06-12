@@ -69,11 +69,8 @@ class CardDeck {
 			cardElement.addEventListener("click", (e) => {
 				if (cardElement.dataset.inHand == "true") {
 					this.discard(cardElement.id);
-					console.log(cardElement.dataset);
 				} else {
 					this.draw(cardElement.id);
-					console.log(cardElement.dataset);
-					console.log(cardElement);
 				}
 			});
 		});
@@ -131,9 +128,9 @@ class CardDeck {
 		this.deck = this.deck.filter((deckCard) => deckCard.id != id);
 
 		this.handElement.appendChild(cardElement);
-		setTimeout(() => {
+		// setTimeout(() => {
 			document.getElementById(id).dataset.inHand = "true";
-		}, 10);
+		// }, 100);
 	}
 
 	discard(id) {
@@ -151,7 +148,7 @@ class CardDeck {
 	}
 
 	sort() {
-		this.possibleCards = this.possibleCards.sort((a, b) =>
+		this.hand = this.hand.sort((a, b) =>
 			a.suit > b.suit ? 1 : a.suit === b.suit ? (a.rank > b.rank ? 1 : -1) : -1
 		);
 	}
@@ -181,34 +178,98 @@ class CardDeck {
 // Get query parameters from url
 const urlSearchAParams = new URLSearchParams(window.location.search);
 const queryParams = Object.fromEntries(urlSearchAParams.entries());
-console.log(queryParams);
+
 
 // Create a new card deck.
 const deck = new CardDeck(".deck", ".hand");
+let cardOptions = [];
+let finalCardSelection = [];
+
+
+/**
+ * Transforms ranks from a string to an integer if not already an integer
+ * @param {string || number} rank 
+ * @returns 
+ */
+const transformRanks = rank => {
+	return rank = rank === 'J'
+		? 11
+		: rank === 'Q'
+		? 12
+		: rank === 'K'
+		? 13
+		: rank === 'A'
+		? 14
+		: rank
+};
+
+
+/**
+ * Attempts to find the current card's id in the url search params
+ * @param {object} card - the current card
+ * @returns true if found or false if not found
+ */
+const findCardInQueryParams = card => {
+	return queryParams.cards.includes(card.id) ? true : false;
+}
+
+
+/**
+ * Attempts to find the current card's rank in the url search params
+ * @param {object} card - the current card
+ * @returns true if found or false if not found
+ */
+const findRankInQueryParams = card => {
+	return queryParams.ranks.find(cardIteration => cardIteration == card.rank) ? true : false;
+}
+
+
+/**
+ * Attempts to find the current card's suit in the url search params
+ * @param {object} card - the current card
+ * @returns true if found or false if not found
+ */
+const findSuitInQueryParams = card => {
+	return queryParams.suits.includes(card.suit) ? true : false;
+}
+
+
+/**
+ * Handles sorting the cards that are currently in your hand
+ * @param {object} card - the current card object in your hand
+ */
+const handleSorting = (card) => {
+	setTimeout(() => {
+		deck.draw(card.id);
+	}, 600);
+}
 
 
 // Handle queryParam instances based on key
 if (queryParams) {
-	let limit;
-	
-	if (queryParams.limit) {
-		
-	}
-
 	if (queryParams.cards) {
 		const individualCards = queryParams.cards.split(' ');
-		console.log(individualCards);
 		for (let individualCard of individualCards) {
-			deck.draw(individualCard);
+			const filteredPossibleCards = deck.possibleCards.filter(card => card.id === individualCard);
+			cardOptions.push(...filteredPossibleCards);
 		}
 	}
 
 	if (queryParams.suits) {
-
+		const individualSuits = queryParams.suits.split(' ');
+		for (let suit of individualSuits) {
+			const filteredPossibleCards = deck.possibleCards.filter(card => card.suit === suit);
+			cardOptions.push(...filteredPossibleCards);
+		}
 	}
 
 	if (queryParams.ranks) {
-
+		const individualRanks = queryParams.ranks.split(' ');
+		for (let rank of individualRanks) {
+			transformRanks(rank);
+			const filteredPossibleCards = deck.possibleCards.filter(card => card.rank == rank);
+			cardOptions.push(...filteredPossibleCards);
+		}
 	}
 
 	if (queryParams.pleaseletmedraweverycard) {
@@ -225,19 +286,124 @@ if (queryParams) {
 	}
 }
 
-if (deck.hand && deck.hand.length > 1) {
+
+// Transform queryParams.ranks
+if (queryParams) {
+	if (queryParams.ranks) {
+		let finalRanks = [];
+		const splitRanks = queryParams.ranks.split(' ');
+
+		for (let rank of splitRanks) {
+			const transformedRank = transformRanks(rank);
+			finalRanks.push(transformedRank);
+		}
+		queryParams.ranks = finalRanks;
+	}
+}
+
+
+// Handle drawing cards based on queryParams
+for (let card of cardOptions) {
+	let isValid;
+
+	if (queryParams.cards && queryParams.ranks && queryParams.suits) {
+		isValid = findCardInQueryParams(card)
+			&& findRankInQueryParams(card)
+			&& findSuitInQueryParams(card)
+			? true
+			: false;
+	} else if (queryParams.cards && queryParams.ranks) {
+		isValid = findCardInQueryParams(card)
+			&& findRankInQueryParams(card)
+			? true
+			: false;
+	} else if (queryParams.ranks && queryParams.suits) {
+		isValid = findRankInQueryParams(card)
+			&& findSuitInQueryParams(card)
+			? true
+			: false;
+	} else if (queryParams.cards && queryParams.suits) {
+		isValid = findCardInQueryParams(card)
+			&& findSuitInQueryParams(card)
+			? true
+			: false;
+	} else if (queryParams.cards) {
+		isValid = findCardInQueryParams(card);
+	} else if (queryParams.ranks) {
+		isValid = findRankInQueryParams(card);
+	} else if (queryParams.suits) {
+		isValid = findSuitInQueryParams(card);
+	}
+
+	if (isValid && !finalCardSelection.find(selectedCard => selectedCard.id === card.id)) {
+		finalCardSelection.push(card);
+	}
+}
+
+
+// Handle drawing cards based on limit queryParam
+if (finalCardSelection && finalCardSelection.length > 0) {
+	if (queryParams.limit && queryParams.limit < finalCardSelection.length) {
+		for (let i = 0; i < queryParams.limit; i++) {
+			const selectionIndex = Math.floor(Math.random() * finalCardSelection.length);
+			deck.draw(finalCardSelection[selectionIndex].id);
+			finalCardSelection.splice(selectionIndex, 1);
+		}
+	} else {
+		for (let card of finalCardSelection) {
+			deck.draw(card.id);
+		}
+	}
+}
+
+
+/**
+ * Creates a button with the class "sort-cards-button"
+ */
+const createSortCardsButton = () => {
 	const sortCardsButton = document.createElement('button');
 	sortCardsButton.setAttribute('class', 'sort-cards-button');
 	sortCardsButton.innerHTML = 'SORT YOUR CARDS';
 	sortCardsButton.addEventListener('click', () => {
 		deck.sort();
+		const yourHand = deck.hand;
+		
+		for (let card of deck.hand) {
+			deck.discard(card.id);
+		}
+		
+		for (let card of yourHand) {
+			handleSorting(card);
+		}
 	})
-	
 	const tableDiv = document.getElementsByClassName('table');
 	tableDiv[0].appendChild(sortCardsButton);
 }
 
 
+/**
+ * Removes the button of class "sort-cards-button" from the DOM
+ */
+const removeSortCardsButton = () => {
+	const sortCardsButton = document.getElementsByClassName('sort-cards-button');
+	sortCardsButton[0].remove();
+}
 
-// Take a look at the deck object and its methods.
-console.log(deck);
+
+// Create sort card button if hand length is greater than 1 at compilation
+if (deck.hand && deck.hand.length > 1) {
+	createSortCardsButton();
+}
+
+
+// Create sort card button if hand length is greater than 1 at any point thereafter
+const DOMCards = document.getElementsByClassName('card');
+for (let DOMCard of DOMCards) {
+	DOMCard.addEventListener('click', () => {
+		if (deck.hand && deck.hand.length > 1 && document.getElementsByClassName('sort-cards-button').length === 0) {
+			createSortCardsButton();
+		} else if (deck.hand && deck.hand.length <= 1 && document.getElementsByClassName('sort-cards-button').length > 0) {
+			removeSortCardsButton();
+		}
+	})
+}
